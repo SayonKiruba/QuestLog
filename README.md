@@ -1,4 +1,4 @@
-#QuestLog Prototype
+QuestLog Prototype
 
 Download and run the program
 *Sign Up to create a user
