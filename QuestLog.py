@@ -9,7 +9,8 @@ from tkinter import ttk, messagebox
 DB_PATH = os.path.join(os.path.dirname(__file__), "questlog.db")
 
 STATUSES = ["Played", "Want to Play", "Currently Playing"]
-
+GENRES = ["Action","Adventure","RPG","Shooter","Strategy","Simulation","Sports","Horror","Puzzle","Platformer","Open World"]
+# Auth helpers (PBKDF2)
 def hash_password(password: str, salt: bytes | None = None) -> tuple[bytes, bytes]:
     if salt is None:
         salt = secrets.token_bytes(16)
@@ -271,6 +272,20 @@ class QuestLogApp(tk.Tk):
         except Exception:
             pass
 
+        # ----- Custom Theme Colors -----
+        self.colors = {
+            "bg_dark": "#14110F",
+            "bg_mid": "#34312D",
+            "bg_light": "#F3F3F4",
+            "text_light": "#F3F3F4",
+            "text_dark": "#14110F",
+            "accent": "#D9C5B2",
+            "muted": "#7E7F83"
+        }
+        self.dark_mode = True
+        self.apply_theme()
+
+
         self.user = None  # sqlite Row
 
         container = ttk.Frame(self)
@@ -283,6 +298,27 @@ class QuestLogApp(tk.Tk):
             frame.grid(row=0, column=0, sticky="nsew")
 
         self.show("AuthFrame")
+
+
+    def apply_theme(self):
+        c = self.colors
+        if self.dark_mode:
+            bg = c["bg_dark"]
+            fg = c["text_light"]
+            panel = c["bg_mid"]
+        else:
+            bg = c["bg_light"]
+            fg = c["text_dark"]
+            panel = "#FFFFFF"
+
+        self.configure(bg=bg)
+
+        style = self.style
+        style.configure("TFrame", background=bg)
+        style.configure("TLabel", background=bg, foreground=fg)
+        style.configure("TNotebook", background=bg)
+        style.configure("TButton", background=c["accent"], foreground=c["text_dark"], padding=6)
+        style.configure("TEntry", fieldbackground=panel, foreground=fg)
 
     def show(self, name: str):
         self.frames[name].tkraise()
@@ -407,6 +443,7 @@ class MainFrame(ttk.Frame):
         self.user_badge.pack(side="right")
 
         ttk.Button(header, text="Log out", command=self.app.logout).pack(side="right", padx=(0, 10))
+        ttk.Button(header, text="Toggle Theme", command=self.toggle_theme).pack(side="right", padx=6)
 
         # Tabs
         self.tabs = ttk.Notebook(self)
@@ -428,6 +465,11 @@ class MainFrame(ttk.Frame):
         self._build_profiles_tab()
         self._build_admin_tab()
 
+
+    def toggle_theme(self):
+        self.app.dark_mode = not self.app.dark_mode
+        self.app.apply_theme()
+
     # --------- Tab builders
     def _build_games_tab(self):
         left = ttk.Frame(self.tab_games)
@@ -435,7 +477,7 @@ class MainFrame(ttk.Frame):
         left.pack(side="left", fill="both", expand=True, padx=(0, 10))
         right.pack(side="left", fill="both", expand=True)
 
-        ttk.Label(left, text="Games", font=("Segoe UI", 12, "bold")).pack(anchor="w")
+        ttk.Label(left, text="Games (from DB)", font=("Segoe UI", 12, "bold")).pack(anchor="w")
         ttk.Label(left, text="Select a game to view details, rate, tag, and comment.", foreground="#666").pack(anchor="w", pady=(0, 8))
 
         self.games_list = tk.Listbox(left, height=22)
@@ -563,7 +605,7 @@ class MainFrame(ttk.Frame):
         ttk.Entry(editor, textvariable=self.adm_name).grid(row=1, column=0, sticky="ew", padx=(0, 8))
 
         ttk.Label(editor, text="Genre").grid(row=0, column=1, sticky="w")
-        ttk.Entry(editor, textvariable=self.adm_genre).grid(row=1, column=1, sticky="ew")
+        ttk.Combobox(editor, textvariable=self.adm_genre, values=GENRES, state="readonly").grid(row=1, column=1, sticky="ew")
 
         ttk.Label(editor, text="DB rating (0–10)").grid(row=2, column=0, sticky="w", pady=(8, 0))
         ttk.Entry(editor, textvariable=self.adm_rating).grid(row=3, column=0, sticky="ew", padx=(0, 8))
@@ -624,7 +666,8 @@ class MainFrame(ttk.Frame):
             yr = "" if r["user_rating"] is None else f"{r['user_rating']:.1f}"
             self.library_tree.insert("", tk.END, values=(r["status"], yr, r["genre"]), text=r["name"])
 
-        
+        # (Treeview doesn't show item text in headings-only mode; so add name into status column via formatting)
+        # Simpler: rebuild with name in first column? We'll keep minimal: show in status column as "Name — Status".
         self.library_tree.delete(*self.library_tree.get_children())
         for r in rows:
             yr = "" if r["user_rating"] is None else f"{r['user_rating']:.1f}"
