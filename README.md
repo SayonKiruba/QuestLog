@@ -1,6 +1,6 @@
 # QuestLog Prototype
 
-* Download and run the program
-* Sign Up to create a user
-* Check Admin Box to create admin user
-* No Database is being used currently
+* Download the program by cloning the repo and adding into the folder of your choice (or creating a new one).
+* After cloning the repo, click run on the IDE of your choice (ex. Visual Studios Code, IntelliJ, Eclipse).
+* Sign In or Sign Up with your credentials.
+* Explore the application!
