@@ -4,7 +4,9 @@
 ## Running the Program
 
 * Download the program by cloning the repo and adding into the folder of your choice (or creating a new one).
-* After cloning the repo, click run on the IDE of your choice (ex. Visual Studios Code, IntelliJ, Eclipse).
+* After cloning the repo to an IDE of your choice, ensure the folder structure matches what was on the repository.
+* Open a new terminal in your IDE and type: python app.py
+* The server should be hosted and you can click on the link which will open a version of the application on your computer.
 * Sign In or Sign Up with your credentials.
 * Explore the application!
 
