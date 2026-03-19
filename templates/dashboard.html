@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QuestLog</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+    <button onclick="showSearch()">Search Games</button>
+    <button onclick="showProfile()">My Profile</button>
+    <button>Search Profiles</button>
+    <button onclick="logout()">Logout</button>
+</nav>
+
+<div class="search-box">
+    <input id="search" placeholder="Search for games...">
+    <button onclick="searchGames()">Search</button>
+</div>
+
+<div id="results" class="game-grid"></div>
+
+<!-- Modal -->
+<div id="modal" class="modal hidden">
+    <div class="modal-content">
+        <h3 id="modal-title"></h3>
+
+        <select id="status">
+            <option>Played</option>
+            <option>Currently Playing</option>
+            <option>Want to Play</option>
+        </select>
+
+        <input id="rating" placeholder="Rating (1-10)">
+        <textarea id="notes" placeholder="Notes"></textarea>
+
+        <button onclick="saveGame()">Save</button>
+        <button onclick="closeModal()">Cancel</button>
+    </div>
+</div>
+
+<div id="profile-page" class="hidden">
+
+    <div class="profile-header">
+        <img id="avatar" class="avatar">
+        <div>
+            <h2 id="display-name"></h2>
+            <p id="username"></p>
+            <p id="bio"></p>
+        </div>
+    </div>
+
+    <button onclick="editProfile()">Edit Profile</button>
+
+    <div id="profile-games" class="game-grid"></div>
+
+</div>
+
+<div id="profile-modal" class="modal hidden">
+    <div class="modal-content">
+
+        <h3>Edit Profile</h3>
+
+        <input id="edit-display-name" placeholder="Display Name">
+        <input id="edit-avatar" placeholder="Avatar URL">
+        <textarea id="edit-bio" placeholder="Bio"></textarea>
+
+        <button onclick="saveProfile()">Save</button>
+        <button onclick="closeProfileModal()">Cancel</button>
+
+    </div>
+</div>
+
+<div id="game-detail-modal" class="modal hidden">
+    <div class="modal-content">
+
+        <img id="detail-image" class="game-cover">
+        <h2 id="detail-name"></h2>
+
+        <!-- VIEW MODE -->
+        <div id="view-mode">
+            <p><strong>Status:</strong> <span id="view-status"></span></p>
+            <p><strong>Rating:</strong> <span id="view-rating"></span></p>
+            <p><strong>Notes:</strong></p>
+            <p id="view-notes"></p>
+
+            <button onclick="enableEdit()">Edit</button>
+            <button onclick="removeGame()">Remove</button>
+            <button onclick="closeGameDetail()">Close</button>
+        </div>
+
+        <!-- EDIT MODE -->
+        <div id="edit-mode" class="hidden">
+            <label>Status:</label>
+            <select id="edit-status">
+                <option>Played</option>
+                <option>Currently Playing</option>
+                <option>Want to Play</option>
+            </select>
+
+            <label>Rating:</label>
+            <input id="edit-rating" type="number" min="0" max="10">
+
+            <label>Notes:</label>
+            <textarea id="edit-notes"></textarea>
+
+            <button onclick="saveGameChanges()">Save</button>
+            <button onclick="cancelEdit()">Cancel</button>
+        </div>
+
+    </div>
+</div>
+
+<div id="edit-mode" class="hidden">
+
+    <div class="field">
+        <label>Status</label>
+        <select id="edit-status">
+            <option>Played</option>
+            <option>Currently Playing</option>
+            <option>Want to Play</option>
+        </select>
+    </div>
+
+    <div class="field">
+        <label>Rating</label>
+        <input id="edit-rating" type="number" min="0" max="10">
+    </div>
+
+    <div class="field">
+        <label>Notes</label>
+        <textarea id="edit-notes"></textarea>
+    </div>
+
+    <button onclick="saveGameChanges()">Save</button>
+    <button onclick="cancelEdit()">Cancel</button>
+
+</div>
+
+<script src="/static/script.js"></script>
+</body>
+</html>
