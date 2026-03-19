@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sign Up - QuestLog</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="auth-box">
+    <h1>Create Account</h1>
+    <p>Join QuestLog</p>
+
+    <form method="POST" action="/signup">
+        <input name="username" placeholder="Choose username" required>
+        <input name="password" type="password" placeholder="Choose password" required>
+        <button type="submit">Sign Up</button>
+    </form>
+
+    <p>
+        Already have an account?
+        <a href="/">Login</a>
+    </p>
+</div>
+
+</body>
+</html>
