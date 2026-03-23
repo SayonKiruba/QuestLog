@@ -1,13 +1,27 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, jsonify, flash, url_for
 import sqlite3
 import hashlib
-from igdb import search_games
 import os
+import time
+from igdb import search_games, featured_games
 
 app = Flask(__name__)
 app.secret_key = "secret123"
 
 DB = "database.db"
+
+FEATURED_CACHE_TTL = 600
+_featured_cache = {"at": 0.0, "payload": None}
+
+
+def safe_next_path(value):
+    if not value or not isinstance(value, str):
+        return None
+    value = value.strip()
+    if not value.startswith("/") or value.startswith("//"):
+        return None
+    return value
+
 
 def init_db():
     conn = sqlite3.connect(DB)
@@ -31,6 +45,47 @@ def init_db():
 def get_db():
     return sqlite3.connect(DB)
 
+
+def get_community_trending(limit=8):
+    with get_db() as conn:
+        rows = conn.execute(
+            """
+            SELECT game_name,
+                   MAX(image) AS image,
+                   COUNT(*) AS add_count
+            FROM library
+            GROUP BY game_name
+            ORDER BY add_count DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+    out = []
+    for r in rows:
+        img = r[1] if r[1] else None
+        out.append({"name": r[0], "image": img, "add_count": r[2]})
+    return out
+
+
+@app.context_processor
+def inject_nav():
+    uid = session.get("user_id")
+    display_name = None
+    if uid:
+        with get_db() as conn:
+            row = conn.execute(
+                "SELECT username, display_name FROM users WHERE id=?",
+                (uid,),
+            ).fetchone()
+        if row:
+            display_name = (row[1] or "").strip() or row[0]
+    return {
+        "logged_in": bool(uid),
+        "nav_display_name": display_name,
+        "current_path": request.path,
+    }
+
+
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
@@ -48,16 +103,17 @@ with get_db() as conn:
 
 @app.route("/")
 def home():
-    return render_template("login.html")
+    return render_template("home.html")
 
-@app.route("/signup")
-def signup_page():
-    return render_template("signup.html")
 
-@app.route("/login", methods=["POST"])
+@app.route("/login", methods=["GET", "POST"])
 def login():
+    if request.method == "GET":
+        return render_template("login.html")
+
     username = request.form["username"]
     password = hash_password(request.form["password"])
+    next_path = safe_next_path(request.form.get("next"))
 
     with get_db() as conn:
         cur = conn.execute("SELECT * FROM users WHERE username=?", (username,))
@@ -65,39 +121,82 @@ def login():
 
     if user and user[2] == password:
         session["user_id"] = user[0]
-        return redirect("/dashboard")
-    else:
-        return "Invalid login"
+        return redirect(next_path or "/dashboard")
 
-@app.route("/signup", methods=["POST"])
-def signup():
-    username = request.form["username"]
-    password = hash_password(request.form["password"])
+    flash("Invalid username or password.", "error")
+    nxt = request.form.get("next", "").strip()
+    if nxt and safe_next_path(nxt):
+        return redirect(url_for("login", next=nxt))
+    return redirect(url_for("login"))
 
-    try:
-        with get_db() as conn:
-            conn.execute(
-                "INSERT INTO users (username, password) VALUES (?, ?)",
-                (username, password)
-            )
-        return redirect("/")
-    except:
-        return "Username already exists"
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("home"))
+
+
+@app.route("/signup", methods=["GET", "POST"])
+def signup_page():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = hash_password(request.form["password"])
+
+        try:
+            with get_db() as conn:
+                conn.execute(
+                    "INSERT INTO users (username, password) VALUES (?, ?)",
+                    (username, password),
+                )
+            flash("Account created. Please sign in.", "success")
+            return redirect(url_for("login"))
+        except Exception:
+            flash("That username is already taken.", "error")
+            return redirect(url_for("signup_page"))
+
+    return render_template("signup.html")
     
 @app.route("/api/games")
 def get_games():
     query = request.args.get("q", "")
 
     if not query:
-        return []
+        return jsonify([])
     games = search_games(query)
-    return games
+    return jsonify(games)
+
+
+@app.route("/api/featured")
+def api_featured():
+    now = time.time()
+    if (
+        _featured_cache["payload"] is not None
+        and now - _featured_cache["at"] < FEATURED_CACHE_TTL
+    ):
+        return jsonify(_featured_cache["payload"])
+
+    community = get_community_trending(8)
+    popular = featured_games(12)
+    payload = {"community": community, "popular": popular}
+    _featured_cache["at"] = now
+    _featured_cache["payload"] = payload
+    return jsonify(payload)
+
+
+def _library_page():
+    if "user_id" not in session:
+        return redirect(url_for("login", next=url_for("library_page")))
+    return render_template("dashboard.html")
+
 
 @app.route("/dashboard")
 def dashboard():
-    if "user_id" not in session:
-        return redirect("/")
-    return render_template("dashboard.html")
+    return _library_page()
+
+
+@app.route("/library")
+def library_page():
+    return _library_page()
 
 
 with get_db() as conn:
@@ -106,16 +205,21 @@ with get_db() as conn:
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER,
             game_name TEXT,
+            image TEXT,
             status TEXT,
             rating REAL,
             notes TEXT
         )
     """)
-    
+    _lib_cols = [r[1] for r in conn.execute("PRAGMA table_info(library)").fetchall()]
+    if _lib_cols and "image" not in _lib_cols:
+        conn.execute("ALTER TABLE library ADD COLUMN image TEXT")
+    conn.commit()
+
 @app.route("/api/add_game", methods=["POST"])
 def add_game():
     if "user_id" not in session:
-        return {"error": "Not logged in"}, 401
+        return jsonify({"error": "Not logged in"}), 401
 
     data = request.json
 
@@ -135,11 +239,12 @@ def add_game():
             ))
             conn.commit()
 
-        return {"success": True}
+        _featured_cache["payload"] = None
+        return jsonify({"success": True})
 
     except Exception as e:
-        print("ADD GAME ERROR:", e) 
-        return {"error": "Server error"}, 500
+        print("ADD GAME ERROR:", e)
+        return jsonify({"error": "Server error"}), 500
     
 with get_db() as conn:
     conn.execute("""
@@ -156,7 +261,7 @@ with get_db() as conn:
 @app.route("/api/profile")
 def get_profile():
     if "user_id" not in session:
-        return {"error": "Not logged in"}, 401
+        return jsonify({"error": "Not logged in"}), 401
 
     try:
         conn = get_db()
@@ -171,32 +276,44 @@ def get_profile():
         conn.close()
 
         if not user:
-            return {"error": "User not found"}, 404
+            return jsonify({"error": "User not found"}), 404
 
-        return {
+        return jsonify({
             "username": user[0] or "",
             "display_name": user[1] or "",
             "bio": user[2] or "",
             "avatar": user[3] or ""
-        }
+        })
 
     except Exception as e:
         print("PROFILE ERROR:", e)
-        return {"error": "Server error"}, 500
+        return jsonify({"error": "Server error"}), 500
     
 @app.route("/api/my_games")
 def my_games():
     if "user_id" not in session:
-        return {"error": "Not logged in"}, 401
+        return jsonify({"error": "Not logged in"}), 401
 
+    q = request.args.get("q", "").strip()
     with get_db() as conn:
-        games = conn.execute("""
-            SELECT game_name, image, status, rating, notes
-            FROM library
-            WHERE user_id=?
-        """, (session["user_id"],)).fetchall()
+        if q:
+            pattern = f"%{q}%"
+            games = conn.execute("""
+                SELECT game_name, image, status, rating, notes
+                FROM library
+                WHERE user_id=? AND (
+                    LOWER(game_name) LIKE LOWER(?)
+                    OR LOWER(IFNULL(status, '')) LIKE LOWER(?)
+                )
+            """, (session["user_id"], pattern, pattern)).fetchall()
+        else:
+            games = conn.execute("""
+                SELECT game_name, image, status, rating, notes
+                FROM library
+                WHERE user_id=?
+            """, (session["user_id"],)).fetchall()
 
-    return [
+    return jsonify([
         {
             "name": g[0],
             "image": g[1],
@@ -205,12 +322,12 @@ def my_games():
             "notes": g[4]
         }
         for g in games
-    ]
+    ])
     
 @app.route("/api/update_profile", methods=["POST"])
 def update_profile():
     if "user_id" not in session:
-        return {"error": "Not logged in"}, 401
+        return jsonify({"error": "Not logged in"}), 401
 
     data = request.json
 
@@ -227,13 +344,13 @@ def update_profile():
         ))
         conn.commit() 
 
-    return {"success": True}
+    return jsonify({"success": True})
 
 
 @app.route("/api/remove_game", methods=["POST"])
 def remove_game():
     if "user_id" not in session:
-        return {"error": "Not logged in"}, 401
+        return jsonify({"error": "Not logged in"}), 401
 
     data = request.json
 
@@ -244,12 +361,13 @@ def remove_game():
         """, (session["user_id"], data.get("name")))
         conn.commit()
 
-    return {"success": True}
+    _featured_cache["payload"] = None
+    return jsonify({"success": True})
 
 @app.route("/api/update_game", methods=["POST"])
 def update_game():
     if "user_id" not in session:
-        return {"error": "Not logged in"}, 401
+        return jsonify({"error": "Not logged in"}), 401
 
     data = request.json
 
@@ -267,8 +385,26 @@ def update_game():
         ))
         conn.commit()
 
-    return {"success": True}
+    return jsonify({"success": True})
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Default to 5050 so a stale/other Flask app on 5000 does not mask this instance.
+    port = int(os.environ.get("QUESTLOG_PORT", "5050"))
+    root = app.root_path
+    style_path = os.path.join(root, "static", "style.css")
+    style_hint = ""
+    try:
+        with open(style_path, encoding="utf-8") as f:
+            head = f.read(80).replace("\n", " ").strip()
+            style_hint = head[:72] + ("…" if len(head) > 72 else "")
+    except OSError as e:
+        style_hint = f"(could not read style.css: {e})"
+
+    print("\n--- QuestLog ---")
+    print(f"Serving from: {root}")
+    print(f"Open: http://127.0.0.1:{port}/")
+    print(f"style.css starts: {style_hint}")
+    print("----------------\n")
+
+    app.run(debug=True, port=port, use_reloader=True)

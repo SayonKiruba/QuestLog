@@ -5,10 +5,11 @@
 
 * Download the program by cloning the repo and adding into the folder of your choice (or creating a new one).
 * After cloning the repo to an IDE of your choice, ensure the folder structure matches what was on the repository.
-* Open a new terminal in your IDE and type: python app.py
-* The server should be hosted and you can click on the link which will open a version of the application on your computer.
-* Sign In or Sign Up with your credentials.
-* Explore the application!
+* Open a new terminal in your IDE, `cd` into the `QuestLog` folder, and run: `python app.py`
+* The app listens on **port 5050** by default (avoids clashing with another Flask app on 5000). Open **http://127.0.0.1:5050/** — or set `QUESTLOG_PORT=5000` if you need port 5000.
+* The console prints **Serving from: …** so you can confirm which folder is running. If the UI looks like an old theme, you were probably hitting a different server; stop other `python` servers or use the URL/port shown in the terminal.
+* **Discover** (`/`) is public: browse trending community picks and popular IGDB titles without signing in. **Library** (`/library` or `/dashboard`) is for logged-in users only.
+* Sign in or sign up from the top bar when you want to add games to your shelf.
 
 ## Added
 + Entire stack changed to:

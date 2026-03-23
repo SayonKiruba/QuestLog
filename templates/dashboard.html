@@ -1,142 +1,185 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>QuestLog</title>
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}Library — QuestLog{% endblock %}
+{% block body_class %}app-body{% endblock %}
 
-<nav class="navbar">
-    <button onclick="showSearch()">Search Games</button>
-    <button onclick="showProfile()">My Profile</button>
-    <button>Search Profiles</button>
-    <button onclick="logout()">Logout</button>
-</nav>
+{% block content %}
+<header class="app-header">
+    <div class="app-header-inner">
+        <a href="{{ url_for('home') }}" class="toolbar-home-link">Discover</a>
+        <div class="search-box">
+            <label class="sr-only" for="search">Search your library</label>
+            <input id="search" type="search" placeholder="Search your library…" autocomplete="off">
+        </div>
+        <nav class="header-actions">
+            <button type="button" class="btn btn-primary" onclick="openDiscoverModal()">Add game</button>
+            <button type="button" class="btn btn-ghost" onclick="showProfile()">Profile</button>
+            <a href="{{ url_for('logout') }}" class="btn btn-ghost">Log out</a>
+        </nav>
+    </div>
+</header>
 
-<div class="search-box">
-    <input id="search" placeholder="Search for games...">
-    <button onclick="searchGames()">Search</button>
+<main class="app-main">
+    <div id="library-view">
+        <div class="page-head">
+            <h1>My library</h1>
+            <p class="text-muted" id="library-count"></p>
+        </div>
+
+        <div id="library-empty" class="empty-state hidden">
+            <h2>Your shelf is empty</h2>
+            <p>Add games from IGDB to start tracking what you play.</p>
+            <button type="button" class="btn btn-primary" onclick="openDiscoverModal()">Add your first game</button>
+        </div>
+
+        <div id="library-no-results" class="empty-state hidden">
+            <h2>No matches</h2>
+            <p>Nothing in your library matches that search. Try another name or clear the filter.</p>
+            <button type="button" class="btn btn-ghost" onclick="clearLibrarySearch()">Clear search</button>
+        </div>
+
+        <div id="results" class="game-grid" role="list"></div>
+    </div>
+
+    <div id="profile-page" class="hidden profile-layout">
+        <div class="page-head">
+            <h1>Profile</h1>
+            <p class="text-muted">Your public-facing details</p>
+        </div>
+
+        <div class="profile-header">
+            <img id="avatar" class="avatar" alt="">
+            <div>
+                <h2 id="display-name" class="profile-title"></h2>
+                <p id="username" class="text-muted profile-username"></p>
+                <p id="bio" class="profile-bio"></p>
+                <dl class="profile-stats">
+                    <div>
+                        <dt>Games in library</dt>
+                        <dd id="profile-library-count">0</dd>
+                    </div>
+                </dl>
+                <div class="profile-actions">
+                    <button type="button" class="btn btn-primary" onclick="editProfile()">Edit profile</button>
+                    <button type="button" class="btn btn-ghost" onclick="showLibrary()">Back to library</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div id="discover-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="discover-title">
+    <div class="modal-content modal-wide">
+        <h3 id="discover-title">Add a game</h3>
+        <p class="text-muted discover-lead">Search IGDB, then add titles to your library.</p>
+        <div class="discover-toolbar discover-toolbar-suggest">
+            <div class="discover-suggest-wrap">
+                <label class="sr-only" for="discover-search">Search IGDB by name</label>
+                <input id="discover-search" class="discover-search-input" type="search"
+                    placeholder="Type a game name — suggestions update as you type"
+                    autocomplete="off" spellcheck="false"
+                    role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="discover-suggestions">
+                <div id="discover-suggestions" class="discover-suggestions hidden" role="listbox" aria-label="Matching games"></div>
+            </div>
+            <button type="button" class="btn btn-primary discover-search-btn" onclick="searchDiscover()">Show results</button>
+        </div>
+        <div id="discover-results" class="discover-results"></div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-ghost" onclick="closeDiscoverModal()">Close</button>
+        </div>
+    </div>
 </div>
 
-<div id="results" class="game-grid"></div>
-
-<!-- Modal -->
-<div id="modal" class="modal hidden">
+<div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal-content">
         <h3 id="modal-title"></h3>
-
-        <select id="status">
-            <option>Played</option>
-            <option>Currently Playing</option>
-            <option>Want to Play</option>
-        </select>
-
-        <input id="rating" placeholder="Rating (1-10)">
-        <textarea id="notes" placeholder="Notes"></textarea>
-
-        <button onclick="saveGame()">Save</button>
-        <button onclick="closeModal()">Cancel</button>
-    </div>
-</div>
-
-<div id="profile-page" class="hidden">
-
-    <div class="profile-header">
-        <img id="avatar" class="avatar">
-        <div>
-            <h2 id="display-name"></h2>
-            <p id="username"></p>
-            <p id="bio"></p>
-        </div>
-    </div>
-
-    <button onclick="editProfile()">Edit Profile</button>
-
-    <div id="profile-games" class="game-grid"></div>
-
-</div>
-
-<div id="profile-modal" class="modal hidden">
-    <div class="modal-content">
-
-        <h3>Edit Profile</h3>
-
-        <input id="edit-display-name" placeholder="Display Name">
-        <input id="edit-avatar" placeholder="Avatar URL">
-        <textarea id="edit-bio" placeholder="Bio"></textarea>
-
-        <button onclick="saveProfile()">Save</button>
-        <button onclick="closeProfileModal()">Cancel</button>
-
-    </div>
-</div>
-
-<div id="game-detail-modal" class="modal hidden">
-    <div class="modal-content">
-
-        <img id="detail-image" class="game-cover">
-        <h2 id="detail-name"></h2>
-
-        <!-- VIEW MODE -->
-        <div id="view-mode">
-            <p><strong>Status:</strong> <span id="view-status"></span></p>
-            <p><strong>Rating:</strong> <span id="view-rating"></span></p>
-            <p><strong>Notes:</strong></p>
-            <p id="view-notes"></p>
-
-            <button onclick="enableEdit()">Edit</button>
-            <button onclick="removeGame()">Remove</button>
-            <button onclick="closeGameDetail()">Close</button>
-        </div>
-
-        <!-- EDIT MODE -->
-        <div id="edit-mode" class="hidden">
-            <label>Status:</label>
-            <select id="edit-status">
+        <div class="field">
+            <label for="status">Status</label>
+            <select id="status">
                 <option>Played</option>
                 <option>Currently Playing</option>
                 <option>Want to Play</option>
             </select>
+        </div>
+        <div class="field">
+            <label for="rating">Rating (1–10)</label>
+            <input id="rating" type="number" min="0" max="10" placeholder="Optional">
+        </div>
+        <div class="field">
+            <label for="notes">Notes</label>
+            <textarea id="notes" placeholder="Optional"></textarea>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-primary" onclick="saveGame()">Save to library</button>
+            <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+</div>
 
-            <label>Rating:</label>
-            <input id="edit-rating" type="number" min="0" max="10">
+<div id="profile-modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-content">
+        <h3>Edit profile</h3>
+        <div class="field">
+            <label for="edit-display-name">Display name</label>
+            <input id="edit-display-name" autocomplete="name">
+        </div>
+        <div class="field">
+            <label for="edit-avatar">Avatar URL</label>
+            <input id="edit-avatar" type="url" placeholder="https://…">
+        </div>
+        <div class="field">
+            <label for="edit-bio">Bio</label>
+            <textarea id="edit-bio" placeholder="Tell others about your taste in games"></textarea>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-primary" onclick="saveProfile()">Save</button>
+            <button type="button" class="btn btn-ghost" onclick="closeProfileModal()">Cancel</button>
+        </div>
+    </div>
+</div>
 
-            <label>Notes:</label>
-            <textarea id="edit-notes"></textarea>
+<div id="game-detail-modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-content">
+        <img id="detail-image" class="detail-cover" alt="">
+        <h2 id="detail-name" class="detail-title"></h2>
 
-            <button onclick="saveGameChanges()">Save</button>
-            <button onclick="cancelEdit()">Cancel</button>
+        <div id="view-mode">
+            <p class="detail-row"><strong>Status</strong> <span id="view-status"></span></p>
+            <p class="detail-row"><strong>Rating</strong> <span id="view-rating"></span></p>
+            <p class="detail-row"><strong>Notes</strong></p>
+            <p id="view-notes" class="detail-notes"></p>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-primary" onclick="enableEdit()">Edit</button>
+                <button type="button" class="btn btn-danger" onclick="removeGame()">Remove</button>
+                <button type="button" class="btn btn-ghost" onclick="closeGameDetail()">Close</button>
+            </div>
         </div>
 
+        <div id="game-edit-mode" class="hidden">
+            <div class="field">
+                <label for="edit-status">Status</label>
+                <select id="edit-status">
+                    <option>Played</option>
+                    <option>Currently Playing</option>
+                    <option>Want to Play</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="edit-rating">Rating</label>
+                <input id="edit-rating" type="number" min="0" max="10">
+            </div>
+            <div class="field">
+                <label for="edit-notes">Notes</label>
+                <textarea id="edit-notes"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-primary" onclick="saveGameChanges()">Save</button>
+                <button type="button" class="btn btn-ghost" onclick="cancelEdit()">Cancel</button>
+            </div>
+        </div>
     </div>
 </div>
+{% endblock %}
 
-<div id="edit-mode" class="hidden">
-
-    <div class="field">
-        <label>Status</label>
-        <select id="edit-status">
-            <option>Played</option>
-            <option>Currently Playing</option>
-            <option>Want to Play</option>
-        </select>
-    </div>
-
-    <div class="field">
-        <label>Rating</label>
-        <input id="edit-rating" type="number" min="0" max="10">
-    </div>
-
-    <div class="field">
-        <label>Notes</label>
-        <textarea id="edit-notes"></textarea>
-    </div>
-
-    <button onclick="saveGameChanges()">Save</button>
-    <button onclick="cancelEdit()">Cancel</button>
-
-</div>
-
-<script src="/static/script.js"></script>
-</body>
-</html>
+{% block scripts %}
+<script src="{{ url_for('static', filename='script.js') }}?v=questlog5"></script>
+{% endblock %}

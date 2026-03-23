@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}QuestLog{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=questlog4">
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="site-root {% block body_class %}{% endblock %}">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-stack" role="region" aria-label="Notifications">
+        {% for category, message in messages %}
+        <div class="flash flash-{{ category }}" role="status">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <header class="site-nav">
+        <div class="site-nav-inner">
+            <a href="{{ url_for('home') }}" class="site-logo">QuestLog</a>
+            <nav class="site-nav-links" aria-label="Main">
+                <a href="{{ url_for('home') }}" class="nav-link{% if current_path == '/' %} nav-active{% endif %}">Discover</a>
+                {% if logged_in %}
+                <a href="{{ url_for('library_page') }}" class="nav-link{% if current_path in ['/dashboard', '/library'] %} nav-active{% endif %}">Library</a>
+                {% else %}
+                <span class="nav-link nav-disabled" title="Sign in to access your library">Library</span>
+                {% endif %}
+            </nav>
+            <div class="site-nav-auth">
+                {% if logged_in %}
+                <span class="nav-user" aria-hidden="true">{{ nav_display_name }}</span>
+                <a href="{{ url_for('library_page') }}" class="btn btn-ghost btn-sm">My shelf</a>
+                <a href="{{ url_for('logout') }}" class="btn btn-ghost btn-sm">Log out</a>
+                {% else %}
+                <a href="{% if current_path in ['/login', '/signup'] %}{{ url_for('login') }}{% else %}{{ url_for('login', next=request.path) }}{% endif %}" class="btn btn-ghost btn-sm">Log in</a>
+                <a href="{{ url_for('signup_page') }}" class="btn btn-primary btn-sm">Sign up</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    {% block content %}{% endblock %}
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <span>QuestLog — track what you play.</span>
+            <span class="site-footer-meta">Data from IGDB</span>
+        </div>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>
