@@ -1,5 +1,5 @@
 # QuestLog Prototype
-
+* Names: Shajjan, Sayon, Faraz, Haseeb, Abdoul
 
 ## Running the Program
 
