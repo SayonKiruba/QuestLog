@@ -1,0 +1,106 @@
+import unittest
+import app
+import sqlite3
+
+class TestApp(unittest.TestCase):
+
+    def setUp(self):
+    
+        self.app = app.app.test_client()
+        self.app.testing = True
+
+
+        app.DB = "test.db"
+
+        conn = sqlite3.connect(app.DB)
+        cur = conn.cursor()
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE,
+                password TEXT,
+                display_name TEXT,
+                bio TEXT,
+                avatar TEXT
+            )
+        """)
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS library (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                game_name TEXT,
+                image TEXT,
+                status TEXT,
+                rating REAL,
+                notes TEXT
+            )
+        """)
+
+        conn.commit()
+        conn.close()
+
+    def tearDown(self):
+        import os
+        if os.path.exists("test.db"):
+            os.remove("test.db")
+
+
+
+    def test_hash_password(self):
+        hashed = app.hash_password("password")
+        self.assertNotEqual(hashed, "password")
+        self.assertEqual(hashed, app.hash_password("password"))
+
+    def test_signup(self):
+        response = self.app.post("/signup", data={
+            "username": "testuser",
+            "password": "123"
+        })
+
+        self.assertEqual(response.status_code, 302) 
+
+    def test_login_success(self):
+    
+        conn = sqlite3.connect(app.DB)
+        cur = conn.cursor()
+        cur.execute("INSERT INTO users (username, password) VALUES (?, ?)",
+                    ("testuser", app.hash_password("123")))
+        conn.commit()
+        conn.close()
+
+        response = self.app.post("/login", data={
+            "username": "testuser",
+            "password": "123"
+        })
+
+        self.assertEqual(response.status_code, 302)
+
+    def test_login_fail(self):
+        response = self.app.post("/login", data={
+            "username": "wrong",
+            "password": "wrong"
+        })
+
+        self.assertIn(b"Invalid login", response.data)
+
+    def test_dashboard_requires_login(self):
+        response = self.app.get("/dashboard")
+        self.assertEqual(response.status_code, 302) 
+
+    def test_add_game_requires_login(self):
+        response = self.app.post("/api/add_game", json={})
+        self.assertEqual(response.status_code, 401)
+
+    def test_profile_requires_login(self):
+        response = self.app.get("/api/profile")
+        self.assertEqual(response.status_code, 401)
+
+    def test_update_profile_requires_login(self):
+        response = self.app.post("/api/update_profile", json={})
+        self.assertEqual(response.status_code, 401)
+
+
+if __name__ == "__main__":
+    unittest.main()

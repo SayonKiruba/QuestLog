@@ -1,0 +1,47 @@
+import unittest
+from unittest.mock import patch
+import igdb
+
+
+class TestIGDB(unittest.TestCase):
+
+    @patch("igdb.requests.post")
+    def test_get_access_token(self, mock_post):
+        mock_post.return_value.json.return_value = {
+            "access_token": "fake_token"
+        }
+
+        token = igdb.get_access_token()
+
+        self.assertEqual(token, "fake_token")
+        self.assertEqual(igdb.access_token, "fake_token")
+
+    @patch("igdb.requests.post")
+    def test_search_games(self, mock_post):
+        igdb.access_token = "fake_token"
+
+        mock_post.return_value.json.return_value = [
+            {"name": "Minecraft"}
+        ]
+
+        results = igdb.search_games("Minecraft")
+
+        self.assertEqual(results[0]["name"], "Minecraft")
+
+    @patch("igdb.requests.post")
+    def test_search_games_gets_token_if_missing(self, mock_post):
+        igdb.access_token = None
+
+        mock_post.return_value.json.side_effect = [
+            {"access_token": "new_token"},
+            [{"name": "Zelda"}]
+        ]
+
+        results = igdb.search_games("Zelda")
+
+        self.assertEqual(igdb.access_token, "new_token")
+        self.assertEqual(results[0]["name"], "Zelda")
+
+
+if __name__ == "__main__":
+    unittest.main()
