@@ -2,6 +2,7 @@ import unittest
 import sqlite3
 import app
 
+# Searching Profiles.
 
 class TestApp(unittest.TestCase):
 
@@ -49,9 +50,6 @@ class TestApp(unittest.TestCase):
         if os.path.exists("test.db"):
             os.remove("test.db")
 
-    # ----------------------
-    # BASIC TESTS
-    # ----------------------
 
     def test_hash_password(self):
         hashed = app.hash_password("password")
