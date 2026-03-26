@@ -1,26 +1,29 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Login - QuestLog</title>
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}Log in — QuestLog{% endblock %}
 
-<div class="auth-box">
-    <h1>QuestLog</h1>
-    <p>Login to continue</p>
+{% block content %}
+<div class="auth-page">
+    <div class="auth-card">
+        <h1>Welcome back</h1>
+        <p>Sign in to manage your library and profile.</p>
 
-    <form method="POST" action="/login">
-        <input name="username" placeholder="Username" required>
-        <input name="password" type="password" placeholder="Password" required>
-        <button type="submit">Login</button>
-    </form>
+        <form method="POST" action="{{ url_for('login') }}">
+            <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
+            <div class="field">
+                <label for="username">Username</label>
+                <input id="username" name="username" autocomplete="username" required>
+            </div>
+            <div class="field">
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password" autocomplete="current-password" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+        </form>
 
-    <p>
-        Don't have an account?
-        <a href="/signup">Sign up</a>
-    </p>
+        <p class="auth-footer">
+            New here? <a href="{{ url_for('signup_page') }}">Create an account</a>
+            · <a href="{{ url_for('home') }}">Back to Discover</a>
+        </p>
+    </div>
 </div>
-
-</body>
-</html>
+{% endblock %}

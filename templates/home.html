@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Discover — QuestLog{% endblock %}
+
+{% block content %}
+<main class="home-main">
+    <section class="home-hero">
+        <div class="home-hero-inner">
+            <p class="home-eyebrow">Track your games. Own your play history.</p>
+            <h1 class="home-hero-title">Your complete gaming journey, tracked from start to finish.</h1>
+            <p class="home-hero-lead">Explore trending games, see what others are playing, and start building your own library when you're ready.</p>
+            <div class="home-search-wrap">
+                <input id="home-search" class="home-search-input" type="search"
+                       placeholder="Search for any game…"
+                       autocomplete="off" spellcheck="false">
+                <button type="button" class="btn btn-primary home-search-btn" id="home-search-btn">Search</button>
+            </div>
+            <div class="home-hero-cta">
+                {% if not logged_in %}
+                <a href="{{ url_for('signup_page') }}" class="btn btn-primary">Create free account</a>
+                <a href="{{ url_for('login', next='/') }}" class="btn btn-ghost">Log in</a>
+                {% else %}
+                <a href="{{ url_for('library_page') }}" class="btn btn-primary">Go to your library</a>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <section id="section-search-results" class="home-section home-search-results hidden">
+        <div class="home-search-results-inner">
+            <div class="section-head">
+                <h2 id="search-results-heading">Search results</h2>
+                <p class="text-muted section-sub" id="search-results-sub"></p>
+            </div>
+            <div id="home-search-loading" class="home-loading hidden">
+                <span class="home-loading-dot"></span>
+                <span class="home-loading-text">Searching…</span>
+            </div>
+            <div id="grid-search" class="home-grid" role="list"></div>
+            <div id="search-empty" class="empty-state home-empty hidden">
+                <h2>No results found</h2>
+                <p>Try a different search term.</p>
+            </div>
+        </div>
+    </section>
+
+    <div class="home-sections">
+        <section class="home-section">
+            <div class="section-head">
+                <h2 id="popular-heading">Popular on IGDB</h2>
+                <p class="text-muted section-sub">Highly rated games with strong buzz</p>
+            </div>
+            <div id="home-loading" class="home-loading">
+                <span class="home-loading-dot"></span>
+                <span class="home-loading-text">Loading picks…</span>
+            </div>
+            <div id="grid-popular" class="home-grid" role="list"></div>
+            <div id="popular-empty" class="empty-state home-empty hidden">
+                <h2>Couldn't load featured games</h2>
+                <p>IGDB may be unavailable. Try refreshing in a moment.</p>
+            </div>
+        </section>
+    </div>
+</main>
+
+<div id="home-detail-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="home-detail-title">
+    <div class="modal-content modal-wide">
+        <img id="home-detail-img" class="detail-cover" alt="">
+        <h3 id="home-detail-title" class="detail-title"></h3>
+        <p id="home-detail-meta" class="text-muted home-detail-meta"></p>
+        <p id="home-detail-summary" class="home-detail-summary"></p>
+        <div class="modal-actions" id="home-detail-actions"></div>
+    </div>
+</div>
+
+<div id="home-add-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="home-add-title">
+    <div class="modal-content">
+        <h3 id="home-add-title"></h3>
+        <div class="field">
+            <label for="home-add-status">Status</label>
+            <select id="home-add-status">
+                <option>Played</option>
+                <option>Currently Playing</option>
+                <option>Want to Play</option>
+            </select>
+        </div>
+        <div class="field">
+            <label for="home-add-rating">Rating (1–10)</label>
+            <input id="home-add-rating" type="number" min="0" max="10" placeholder="Optional">
+        </div>
+        <div class="field">
+            <label for="home-add-notes">Notes</label>
+            <textarea id="home-add-notes" placeholder="Optional"></textarea>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-primary" id="home-add-save">Save to library</button>
+            <button type="button" class="btn btn-ghost" id="home-add-cancel">Cancel</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.__QUESTLOG__ = { loggedIn: {{ logged_in | tojson }} };
+</script>
+<script src="{{ url_for('static', filename='home.js') }}?v=questlog5"></script>
+{% endblock %}
