@@ -199,6 +199,13 @@ def library_page():
     return _library_page()
 
 
+@app.route("/profiles")
+def profiles_page():
+    if "user_id" not in session:
+        return redirect(url_for("login", next=url_for("profiles_page")))
+    return render_template("profiles.html")
+
+
 with get_db() as conn:
     conn.execute("""
         CREATE TABLE IF NOT EXISTS library (
@@ -386,6 +393,100 @@ def update_game():
         conn.commit()
 
     return jsonify({"success": True})
+
+
+@app.route("/api/search_profiles")
+def search_profiles():
+    if "user_id" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    query = request.args.get("q", "").strip()
+    
+    if not query:
+        return jsonify([])
+
+    try:
+        with get_db() as conn:
+            pattern = f"%{query}%"
+            profiles = conn.execute("""
+                SELECT id, username, display_name, bio, avatar
+                FROM users
+                WHERE (LOWER(username) LIKE LOWER(?) OR LOWER(display_name) LIKE LOWER(?))
+                LIMIT 16
+            """, (pattern, pattern)).fetchall()
+
+        result = []
+        for p in profiles:
+            user_id, username, display_name, bio, avatar = p
+            # Count games for this user
+            with get_db() as conn:
+                game_count = conn.execute(
+                    "SELECT COUNT(*) FROM library WHERE user_id=?",
+                    (user_id,)
+                ).fetchone()[0]
+            
+            result.append({
+                "username": username,
+                "display_name": display_name or "",
+                "bio": bio or "",
+                "avatar": avatar or "",
+                "games_count": game_count
+            })
+
+        return jsonify(result)
+
+    except Exception as e:
+        print("SEARCH PROFILES ERROR:", e)
+        return jsonify({"error": "Server error"}), 500
+
+
+@app.route("/api/profiles/<username>")
+def get_public_profile(username):
+    if "user_id" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    try:
+        with get_db() as conn:
+            # Get profile info
+            profile = conn.execute("""
+                SELECT id, username, display_name, bio, avatar
+                FROM users
+                WHERE username=?
+            """, (username,)).fetchone()
+
+            if not profile:
+                return jsonify({"error": "Profile not found"}), 404
+
+            user_id = profile[0]
+            
+            # Get user's games
+            games = conn.execute("""
+                SELECT game_name, image, status, rating, notes
+                FROM library
+                WHERE user_id=?
+                ORDER BY game_name
+            """, (user_id,)).fetchall()
+
+        return jsonify({
+            "username": profile[1],
+            "display_name": profile[2] or "",
+            "bio": profile[3] or "",
+            "avatar": profile[4] or "",
+            "games": [
+                {
+                    "name": g[0],
+                    "image": g[1],
+                    "status": g[2],
+                    "rating": g[3],
+                    "notes": g[4]
+                }
+                for g in games
+            ]
+        })
+
+    except Exception as e:
+        print("GET PUBLIC PROFILE ERROR:", e)
+        return jsonify({"error": "Server error"}), 500
 
 
 if __name__ == "__main__":

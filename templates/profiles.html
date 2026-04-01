@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Profiles — QuestLog{% endblock %}
+
+{% block content %}
+<main class="home-main">
+    <section class="home-hero">
+        <div class="home-hero-inner">
+            <p class="home-eyebrow">Connect with other gamers</p>
+            <h1 class="home-hero-title">Explore player profiles and libraries.</h1>
+            <p class="home-hero-lead">Search for other users, explore their gaming preferences, and discover what games others are playing.</p>
+            <div class="home-search-wrap">
+                <input id="profiles-search" class="home-search-input" type="search"
+                       placeholder="Search for a username…"
+                       autocomplete="off" spellcheck="false">
+                <button type="button" class="btn btn-primary home-search-btn" id="profiles-search-btn">Search</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="section-search-results" class="home-section home-search-results hidden">
+        <div class="home-search-results-inner">
+            <div class="section-head">
+                <h2 id="search-results-heading">Search results</h2>
+                <p class="text-muted section-sub" id="search-results-sub"></p>
+            </div>
+            <div id="profiles-search-loading" class="home-loading hidden">
+                <span class="home-loading-dot"></span>
+                <span class="home-loading-text">Searching…</span>
+            </div>
+            <div id="grid-search" class="home-grid" role="list"></div>
+            <div id="search-empty" class="empty-state home-empty hidden">
+                <h2>No profiles found</h2>
+                <p>Try a different search term.</p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div id="profile-detail-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="profile-detail-title">
+    <div class="modal-content modal-wide">
+        <div class="profile-detail-header">
+            <img id="profile-detail-avatar" class="profile-detail-avatar" alt="">
+            <div class="profile-detail-info">
+                <h3 id="profile-detail-display-name" class="profile-detail-title"></h3>
+                <p id="profile-detail-username" class="text-muted profile-detail-username"></p>
+                <p id="profile-detail-bio" class="profile-detail-bio"></p>
+                <dl class="profile-detail-stats">
+                    <div>
+                        <dt>Games in library</dt>
+                        <dd id="profile-detail-count">0</dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+        <div class="profile-detail-games">
+            <h4>Library</h4>
+            <div id="profile-detail-games-list" class="profile-games-list"></div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.__QUESTLOG__ = { loggedIn: {{ logged_in | tojson }} };
+</script>
+<script src="{{ url_for('static', filename='profiles.js') }}?v=questlog1"></script>
+{% endblock %}

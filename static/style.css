@@ -1131,3 +1131,140 @@ textarea {
     color: var(--accent);
     background: var(--bg-hover);
 }
+
+/* ----- Profile Detail Modal ----- */
+.profile-card-media {
+    aspect-ratio: 1 / 1;
+    background: var(--bg-elevated);
+}
+
+.profile-card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.profile-detail-header {
+    display: flex;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-xl);
+    padding-bottom: var(--space-lg);
+    border-bottom: 1px solid var(--border);
+}
+
+.profile-detail-avatar {
+    flex-shrink: 0;
+    width: 128px;
+    height: 128px;
+    border-radius: var(--radius-lg);
+    object-fit: cover;
+}
+
+.profile-detail-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.profile-detail-title {
+    margin: 0 0 var(--space-xs);
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.profile-detail-username {
+    margin: 0 0 var(--space-md);
+    font-size: 0.9rem;
+}
+
+.profile-detail-bio {
+    margin: 0 0 var(--space-lg);
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.profile-detail-stats {
+    display: flex;
+    gap: var(--space-xl);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.profile-detail-stats > div {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.profile-detail-stats dt {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.profile-detail-stats dd {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.profile-detail-games {
+    margin-top: var(--space-lg);
+}
+
+.profile-detail-games h4 {
+    margin: 0 0 var(--space-md);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+}
+
+.profile-games-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.profile-games-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.profile-games-table tr {
+    border-top: 1px solid var(--border);
+}
+
+.profile-games-table tr:first-child {
+    border-top: none;
+}
+
+.profile-games-table td {
+    padding: var(--space-md) 0;
+    color: var(--text-primary);
+}
+
+.profile-game-name {
+    font-weight: 500;
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-game-status {
+    color: var(--text-secondary);
+    padding: 0 var(--space-md);
+}
+
+.profile-game-rating {
+    color: var(--accent);
+    font-weight: 600;
+    text-align: right;
+}
