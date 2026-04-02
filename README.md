@@ -46,7 +46,7 @@ Follow these instructions to get a copy of the project up and running on your lo
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/SayonKiruba/QuestLog.git](https://github.com/SayonKiruba/QuestLog.git)
+   git clone https://github.com/SayonKiruba/QuestLog.git
    ```
 
 2. **Navigate to the project directory:**
@@ -56,7 +56,7 @@ Follow these instructions to get a copy of the project up and running on your lo
    ```
 
 3. **Install dependencies (if applicable):**
-   *(Note: Ensure you have Flask and the required packages installed. You may want to create a `requirements.txt` file in the future).*
+   *(Note: Ensure you have Flask and the required packages installed.)*
    ```bash
    pip install flask requests
    ```
