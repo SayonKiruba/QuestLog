@@ -23,12 +23,14 @@
 
     <header class="site-nav">
         <div class="site-nav-inner">
-            <a href="{{ url_for('home') }}" class="site-logo">QuestLog</a>
+            <a href="{{ url_for('home') }}" class="site-logo"><img src="{{ url_for('static', filename='logo.png') }}" alt="QuestLog" class="site-logo-img">QuestLog</a>
             <nav class="site-nav-links" aria-label="Main">
                 <a href="{{ url_for('home') }}" class="nav-link{% if current_path == '/' %} nav-active{% endif %}">Discover</a>
                 {% if logged_in %}
+                <a href="{{ url_for('profiles_page') }}" class="nav-link{% if current_path == '/profiles' %} nav-active{% endif %}">Profiles</a>
                 <a href="{{ url_for('library_page') }}" class="nav-link{% if current_path in ['/dashboard', '/library'] %} nav-active{% endif %}">Library</a>
                 {% else %}
+                <span class="nav-link nav-disabled" title="Sign in to access profiles">Profiles</span>
                 <span class="nav-link nav-disabled" title="Sign in to access your library">Library</span>
                 {% endif %}
             </nav>
