@@ -46,4 +46,50 @@ Follow these instructions to get a copy of the project up and running on your lo
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/SayonKiruba/QuestLog.git
+   git clone [https://github.com/SayonKiruba/QuestLog.git](https://github.com/SayonKiruba/QuestLog.git)
+   ```
+
+2. **Navigate to the project directory:**
+   Ensure your folder structure matches the repository exactly.
+   ```bash
+   cd QuestLog
+   ```
+
+3. **Install dependencies (if applicable):**
+   *(Note: Ensure you have Flask and the required packages installed. You may want to create a `requirements.txt` file in the future).*
+   ```bash
+   pip install flask requests
+   ```
+
+4. **Run the application:**
+   ```bash
+   python app.py
+   ```
+
+5. **Access the application:**
+   - The app listens on **port 5050** by default (to avoid clashing with other standard Flask apps running on port 5000).
+   - Open your web browser and navigate to: **[http://127.0.0.1:5050/](http://127.0.0.1:5050/)**
+   - *Note: If you need to run it on port 5000, set your environment variable: `QUESTLOG_PORT=5000`.*
+
+> **Troubleshooting Tip:** The console will print **Serving from: …** so you can confirm which folder is running. If the UI looks like an old theme, you might be hitting a different server. Stop other Python servers or use the exact URL/port shown in your terminal. There are also known edge cases regarding the local database initialization upon cloning; if issues arise, resetting the database may be required.
+
+---
+
+## 🗺️ Roadmap / Future Implementations
+
+The team is actively working on enhancing QuestLog. Planned features include:
+
+- [ ] **Social Features:** Searching for other users and viewing their public profiles/libraries.
+- [ ] **Game Descriptions:** Adding detailed game summaries and lore when viewing game details.
+- [ ] **Admin Roles:** Implementing an admin dashboard with exclusive moderation perks.
+- [ ] **UI/UX Enhancements:** Continued polishing of the user interface.
+- [ ] **Branding:** Finalizing the official logo to be displayed on the login/signup pages.
+
+*(Note: Features from older prototypes like the previous tech stack and admin checkboxes have been successfully deprecated/removed).*
+
+---
+
+## 🤝 Contributing
+
+This repository is currently maintained for a prototype project. If you are part of the team or an approved contributor, please ensure you pull the latest branch changes and verify the local database structure before submitting a pull request.
+```
