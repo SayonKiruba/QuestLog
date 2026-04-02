@@ -79,17 +79,7 @@ Follow these instructions to get a copy of the project up and running on your lo
 
 The team is actively working on enhancing QuestLog. Planned features include:
 
-- [ ] **Social Features:** Searching for other users and viewing their public profiles/libraries.
 - [ ] **Game Descriptions:** Adding detailed game summaries and lore when viewing game details.
 - [ ] **Admin Roles:** Implementing an admin dashboard with exclusive moderation perks.
-- [ ] **UI/UX Enhancements:** Continued polishing of the user interface.
-- [ ] **Branding:** Finalizing the official logo to be displayed on the login/signup pages.
-
-*(Note: Features from older prototypes like the previous tech stack and admin checkboxes have been successfully deprecated/removed).*
 
 ---
-
-## 🤝 Contributing
-
-This repository is currently maintained for a prototype project. If you are part of the team or an approved contributor, please ensure you pull the latest branch changes and verify the local database structure before submitting a pull request.
-```
