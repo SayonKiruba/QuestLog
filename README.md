@@ -49,6 +49,6 @@ Follow these instructions to get a copy of the project up and running on your lo
    git clone https://github.com/SayonKiruba/QuestLog.git
 
 2. **Run the run.bat file**
-   Double click on the run.bat file or
+   - Double click on the run.bat file or
    ```bash
    run.bat
