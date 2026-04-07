@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Admin - QuestLog{% endblock %}
+
+{% block content %}
+<main class="app-main">
+    <div class="page-head">
+        <h1>Admin panel</h1>
+        <p class="text-muted">Add custom games, edit saved entries, override IGDB titles inside QuestLog, and blacklist games from search results.</p>
+    </div>
+
+    <div class="profile-layout" style="grid-template-columns: minmax(0, 1fr);">
+        <section class="auth-card" style="max-width: none;">
+            <h2 id="admin-form-title">Add game</h2>
+            <div class="field">
+                <label for="admin-name">Name</label>
+                <input id="admin-name" autocomplete="off" required>
+            </div>
+            <div class="field">
+                <label for="admin-image">Image URL</label>
+                <input id="admin-image" type="url" placeholder="https://...">
+            </div>
+            <div class="field">
+                <label for="admin-summary">Summary</label>
+                <textarea id="admin-summary" placeholder="Optional description"></textarea>
+            </div>
+            <div class="field">
+                <label for="admin-igdb-id">IGDB ID</label>
+                <input id="admin-igdb-id" type="number" min="1" placeholder="Optional">
+            </div>
+            <div class="field">
+                <label for="admin-blacklisted">
+                    <input id="admin-blacklisted" type="checkbox">
+                    Blacklist this game
+                </label>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-primary" onclick="saveAdminGame()">Save</button>
+                <button type="button" class="btn btn-ghost" onclick="resetAdminForm()">Clear</button>
+            </div>
+        </section>
+
+        <section>
+            <div class="page-head">
+                <h2>Managed games</h2>
+                <p id="admin-count" class="text-muted">Loading...</p>
+            </div>
+            <div id="admin-games" class="game-grid" role="list"></div>
+        </section>
+    </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='admin.js') }}?v=questlog-admin1"></script>
+{% endblock %}

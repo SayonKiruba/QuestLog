@@ -1,5 +1,7 @@
 let selectedGame = null;
 let libraryGames = [];
+const questlogState = window.__QUESTLOG__ || {};
+const isAdmin = questlogState.isAdmin === true;
 
 function escapeHtml(text) {
     if (text == null) return "";
@@ -16,6 +18,14 @@ function igdbCoverUrl(g) {
         return "https:" + g.cover.url.replace("t_thumb", "t_cover_big");
     }
     return "https://dummyimage.com/600x800/1a1d28/8b92a8&text=No+cover";
+}
+
+function updateAdminGameId(game) {
+    if (!isAdmin) return;
+    const el = document.getElementById("admin-game-id");
+    if (!el) return;
+    const value = game && game.id != null ? String(game.id) : "Not available";
+    el.textContent = `IGDB ID: ${value}`;
 }
 
 function updateLibraryCount() {
@@ -315,6 +325,7 @@ function openModal(g) {
     };
 
     document.getElementById("modal-title").innerText = g.name;
+    updateAdminGameId(selectedGame);
     document.getElementById("status").selectedIndex = 0;
     document.getElementById("rating").value = "";
     document.getElementById("notes").value = "";

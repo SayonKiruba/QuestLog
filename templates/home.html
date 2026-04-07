@@ -75,6 +75,9 @@
 <div id="home-add-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="home-add-title">
     <div class="modal-content">
         <h3 id="home-add-title"></h3>
+        {% if nav_is_admin %}
+        <p id="home-admin-game-id" class="text-muted">IGDB ID: </p>
+        {% endif %}
         <div class="field">
             <label for="home-add-status">Status</label>
             <select id="home-add-status">
@@ -101,7 +104,10 @@
 
 {% block scripts %}
 <script>
-window.__QUESTLOG__ = { loggedIn: {{ logged_in | tojson }} };
+window.__QUESTLOG__ = {
+    loggedIn: {{ logged_in | tojson }},
+    isAdmin: {{ nav_is_admin | tojson }}
+};
 </script>
 <script src="{{ url_for('static', filename='home.js') }}?v=questlog5"></script>
 {% endblock %}
