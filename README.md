@@ -1,6 +1,5 @@
 # 🎮 QuestLog
 
-![QuestLog Overview](https://img.shields.io/badge/Status-Prototype-orange.svg) 
 ![Python](https://img.shields.io/badge/Backend-Python_|_Flask-blue.svg) 
 ![JavaScript](https://img.shields.io/badge/Frontend-Vanilla_JS_|_HTML_|_CSS-yellow.svg)
 ![IGDB API](https://img.shields.io/badge/API-IGDB-purple.svg)
