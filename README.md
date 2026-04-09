@@ -65,6 +65,7 @@ Follow these instructions to get a copy of the project up and running on your lo
    ```bash
    python app.py
    ```
+   or click on the run.bat excecutable file!
 
 5. **Access the application:**
    - The app listens on **port 5050** by default (to avoid clashing with other standard Flask apps running on port 5000).
