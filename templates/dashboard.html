@@ -23,9 +23,15 @@
 
 <main class="app-main">
     <div id="library-view">
-        <div class="page-head">
-            <h1>My library</h1>
-            <p class="text-muted" id="library-count"></p>
+        <div class="page-head page-head-library">
+            <div>
+                <h1>My library</h1>
+                <p class="text-muted" id="library-count"></p>
+            </div>
+            <div class="page-head-library-actions">
+                <button type="button" class="btn btn-ghost" onclick="pickRandomWantToPlay()">Random pick</button>
+                <span id="random-picker-feedback" class="text-muted page-head-library-feedback" role="status" aria-live="polite"></span>
+            </div>
         </div>
 
         <div id="library-empty" class="empty-state hidden">
@@ -190,5 +196,5 @@
 <script>
 window.__QUESTLOG__ = { isAdmin: {{ nav_is_admin | tojson }} };
 </script>
-<script src="{{ url_for('static', filename='script.js') }}?v=questlog5"></script>
+<script src="{{ url_for('static', filename='script.js') }}?v=questlog7"></script>
 {% endblock %}

@@ -136,6 +136,33 @@ async function fetchLibrary() {
     applyLibraryFilter();
 }
 
+const STATUS_WANT_TO_PLAY = "Want to Play";
+
+function normalizeLibraryStatus(s) {
+    return (s || "").replace(/\s+/g, " ").trim();
+}
+
+function isWantToPlayStatus(s) {
+    return normalizeLibraryStatus(s).toLowerCase() === STATUS_WANT_TO_PLAY.toLowerCase();
+}
+
+function randomIndex(n) {
+    if (n <= 1) return 0;
+    return Math.floor(Math.random() * n);
+}
+
+function pickRandomWantToPlay() {
+    const feedback = document.getElementById("random-picker-feedback");
+    const pool = libraryGames.filter((g) => isWantToPlayStatus(g.status));
+    if (pool.length === 0) {
+        if (feedback) feedback.textContent = "No games marked Want to Play.";
+        return;
+    }
+    if (feedback) feedback.textContent = "";
+    const idx = randomIndex(pool.length);
+    openGameDetail(pool[idx]);
+}
+
 const DISCOVER_SUGGEST_MIN = 2;
 const DISCOVER_SUGGEST_DEBOUNCE_MS = 280;
 
