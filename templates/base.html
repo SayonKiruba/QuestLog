@@ -29,6 +29,9 @@
                 {% if logged_in %}
                 <a href="{{ url_for('profiles_page') }}" class="nav-link{% if current_path == '/profiles' %} nav-active{% endif %}">Profiles</a>
                 <a href="{{ url_for('library_page') }}" class="nav-link{% if current_path in ['/dashboard', '/library'] %} nav-active{% endif %}">Library</a>
+                {% if nav_is_admin %}
+                <a href="{{ url_for('admin_page') }}" class="nav-link{% if current_path == '/admin' %} nav-active{% endif %}">Admin</a>
+                {% endif %}
                 {% else %}
                 <span class="nav-link nav-disabled" title="Sign in to access profiles">Profiles</span>
                 <span class="nav-link nav-disabled" title="Sign in to access your library">Library</span>
@@ -37,6 +40,9 @@
             <div class="site-nav-auth">
                 {% if logged_in %}
                 <span class="nav-user" aria-hidden="true">{{ nav_display_name }}</span>
+                {% if nav_is_admin %}
+                <a href="{{ url_for('admin_page') }}" class="btn btn-ghost btn-sm">Admin</a>
+                {% endif %}
                 <a href="{{ url_for('library_page') }}" class="btn btn-ghost btn-sm">My shelf</a>
                 <a href="{{ url_for('logout') }}" class="btn btn-ghost btn-sm">Log out</a>
                 {% else %}

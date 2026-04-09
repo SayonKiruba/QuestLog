@@ -12,6 +12,9 @@
         </div>
         <nav class="header-actions">
             <button type="button" class="btn btn-primary" onclick="openDiscoverModal()">Add game</button>
+            {% if nav_is_admin %}
+            <a href="{{ url_for('admin_page') }}" class="btn btn-ghost">Admin</a>
+            {% endif %}
             <button type="button" class="btn btn-ghost" onclick="showProfile()">Profile</button>
             <a href="{{ url_for('logout') }}" class="btn btn-ghost">Log out</a>
         </nav>
@@ -92,6 +95,9 @@
 <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal-content">
         <h3 id="modal-title"></h3>
+        {% if nav_is_admin %}
+        <p id="admin-game-id" class="text-muted">IGDB ID: </p>
+        {% endif %}
         <div class="field">
             <label for="status">Status</label>
             <select id="status">
@@ -181,5 +187,8 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+window.__QUESTLOG__ = { isAdmin: {{ nav_is_admin | tojson }} };
+</script>
 <script src="{{ url_for('static', filename='script.js') }}?v=questlog5"></script>
 {% endblock %}

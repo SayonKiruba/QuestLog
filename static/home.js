@@ -1,4 +1,5 @@
 const loggedIn = window.__QUESTLOG__ && window.__QUESTLOG__.loggedIn === true;
+const isAdmin = window.__QUESTLOG__ && window.__QUESTLOG__.isAdmin === true;
 
 let pendingGame = null;
 
@@ -21,6 +22,14 @@ function igdbCoverUrl(g) {
 
 function placeholderCover() {
     return "https://dummyimage.com/600x800/1a1d28/8b92a8&text=No+cover";
+}
+
+function updateHomeAdminGameId(game) {
+    if (!isAdmin) return;
+    const el = document.getElementById("home-admin-game-id");
+    if (!el) return;
+    const value = game && game.id != null ? String(game.id) : "Not available";
+    el.textContent = `IGDB ID: ${value}`;
 }
 
 function truncateSummary(text, max) {
@@ -194,6 +203,7 @@ function openAddModal(name, image, extra) {
         image,
     };
     document.getElementById("home-add-title").textContent = name;
+    updateHomeAdminGameId(pendingGame);
     document.getElementById("home-add-status").selectedIndex = 0;
     document.getElementById("home-add-rating").value = "";
     document.getElementById("home-add-notes").value = "";

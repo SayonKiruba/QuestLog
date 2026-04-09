@@ -1,5 +1,8 @@
 import unittest
 import sqlite3
+import tempfile
+import os
+from unittest.mock import patch
 import app
 
 # Searching Profiles.
@@ -12,43 +15,17 @@ class TestApp(unittest.TestCase):
         self.app.testing = True
 
         # Use test database
-        app.DB = "test.db"
-
-        conn = sqlite3.connect(app.DB)
-        cur = conn.cursor()
-
-        # Create users table
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE,
-                password TEXT,
-                display_name TEXT,
-                bio TEXT,
-                avatar TEXT
-            )
-        """)
-
-        # Create library table
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS library (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                game_name TEXT,
-                image TEXT,
-                status TEXT,
-                rating REAL,
-                notes TEXT
-            )
-        """)
-
-        conn.commit()
-        conn.close()
+        fd, path = tempfile.mkstemp(prefix="questlog_test_", suffix=".db")
+        os.close(fd)
+        app.DB = path
+        app.init_db()
 
     def tearDown(self):
-        import os
-        if os.path.exists("test.db"):
-            os.remove("test.db")
+        if os.path.exists(app.DB):
+            try:
+                os.remove(app.DB)
+            except PermissionError:
+                pass
 
 
     def test_hash_password(self):
@@ -62,6 +39,23 @@ class TestApp(unittest.TestCase):
             "password": "123"
         })
         self.assertEqual(response.status_code, 302)
+
+    def test_signup_admin_checkbox(self):
+        self.app.post("/signup", data={
+            "username": "adminuser",
+            "password": "123",
+            "is_admin": "on"
+        })
+
+        conn = sqlite3.connect(app.DB)
+        row = conn.execute(
+            "SELECT is_admin FROM users WHERE username=?",
+            ("adminuser",)
+        ).fetchone()
+        conn.close()
+
+        self.assertIsNotNone(row)
+        self.assertEqual(row[0], 1)
 
     def test_login_success(self):
         conn = sqlite3.connect(app.DB)
@@ -83,9 +77,9 @@ class TestApp(unittest.TestCase):
         response = self.app.post("/login", data={
             "username": "wrong",
             "password": "wrong"
-        })
+        }, follow_redirects=True)
 
-        self.assertIn(b"Invalid login", response.data)
+        self.assertIn(b"Invalid username or password", response.data)
 
     def test_dashboard_requires_login(self):
         response = self.app.get("/dashboard")
@@ -95,20 +89,123 @@ class TestApp(unittest.TestCase):
         response = self.app.get("/api/profile")
         self.assertEqual(response.status_code, 401)
 
+    def test_admin_route_requires_admin(self):
+        conn = sqlite3.connect(app.DB)
+        conn.execute(
+            "INSERT INTO users (username, password, is_admin) VALUES (?, ?, ?)",
+            ("testuser", app.hash_password("123"), 0)
+        )
+        conn.commit()
+        conn.close()
+
+        with self.app.session_transaction() as sess:
+            sess["user_id"] = 1
+
+        response = self.app.get("/api/admin/games")
+        self.assertEqual(response.status_code, 403)
+
+    def test_admin_can_create_game(self):
+        conn = sqlite3.connect(app.DB)
+        conn.execute(
+            "INSERT INTO users (username, password, is_admin) VALUES (?, ?, ?)",
+            ("admin", app.hash_password("123"), 1)
+        )
+        conn.commit()
+        conn.close()
+
+        with self.app.session_transaction() as sess:
+            sess["user_id"] = 1
+
+        response = self.app.post("/api/admin/games", json={
+            "name": "School Project Game",
+            "image": "https://example.com/cover.png",
+            "summary": "Test summary"
+        })
+
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()
+        self.assertTrue(data["success"])
+
+    @patch("app.search_games")
+    def test_admin_override_updates_existing_igdb_game(self, mock_search_games):
+        mock_search_games.return_value = [{
+            "id": 321,
+            "name": "Original Game",
+            "summary": "Original summary",
+            "cover": {"url": "//images.igdb.com/igdb/image/upload/t_thumb/original.jpg"},
+        }]
+
+        conn = sqlite3.connect(app.DB)
+        conn.execute(
+            """
+            INSERT INTO admin_games (igdb_id, name, normalized_name, image, summary, is_blacklisted)
+            VALUES (?, ?, ?, ?, ?, 0)
+            """,
+            (
+                321,
+                "Edited Game",
+                "edited game",
+                "https://example.com/override.png",
+                "Overridden summary",
+            ),
+        )
+        conn.commit()
+        conn.close()
+
+        response = self.app.get("/api/games?q=Original")
+        self.assertEqual(response.status_code, 200)
+        data = response.get_json()
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]["id"], 321)
+        self.assertEqual(data[0]["name"], "Edited Game")
+        self.assertEqual(data[0]["summary"], "Overridden summary")
+        self.assertEqual(data[0]["cover"]["url"], "//example.com/override.png")
+
+    @patch("app.search_games")
+    def test_admin_blacklist_hides_existing_igdb_game(self, mock_search_games):
+        mock_search_games.return_value = [{
+            "id": 654,
+            "name": "Blacklist Me",
+            "summary": "Should not appear",
+        }]
+
+        conn = sqlite3.connect(app.DB)
+        conn.execute(
+            """
+            INSERT INTO admin_games (igdb_id, name, normalized_name, image, summary, is_blacklisted)
+            VALUES (?, ?, ?, ?, ?, 1)
+            """,
+            (
+                654,
+                "Blacklist Me",
+                "blacklist me",
+                "",
+                "",
+            ),
+        )
+        conn.commit()
+        conn.close()
+
+        response = self.app.get("/api/games?q=Blacklist")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), [])
+
     def test_search_profiles(self):
-        """
-        This test is written BEFORE the feature exists.
-        It should FAIL (RED) because /api/search_profiles is not implemented yet.
-        """
+        conn = sqlite3.connect(app.DB)
+        conn.execute(
+            "INSERT INTO users (username, password) VALUES (?, ?)",
+            ("testuser", app.hash_password("123"))
+        )
+        conn.commit()
+        conn.close()
+
+        with self.app.session_transaction() as sess:
+            sess["user_id"] = 1
 
         response = self.app.get("/api/search_profiles?q=test")
-
-        # Expect success (but will fail for now)
         self.assertEqual(response.status_code, 200)
 
         data = response.get_json()
-
-        # Expect list of profiles
         self.assertIsInstance(data, list)
 
 
