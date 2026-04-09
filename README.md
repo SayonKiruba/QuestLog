@@ -74,12 +74,3 @@ Follow these instructions to get a copy of the project up and running on your lo
 > **Troubleshooting Tip:** The console will print **Serving from: …** so you can confirm which folder is running. If the UI looks like an old theme, you might be hitting a different server. Stop other Python servers or use the exact URL/port shown in your terminal. There are also known edge cases regarding the local database initialization upon cloning; if issues arise, resetting the database may be required.
 
 ---
-
-## 🗺️ Roadmap / Future Implementations
-
-The team is actively working on enhancing QuestLog. Planned features include:
-
-- [ ] **Game Descriptions:** Adding detailed game summaries and lore when viewing game details.
-- [ ] **Admin Roles:** Implementing an admin dashboard with exclusive moderation perks.
-
----
