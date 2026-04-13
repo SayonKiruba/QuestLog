@@ -626,6 +626,30 @@ textarea {
     margin-bottom: 0;
 }
 
+.help-faq {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.help-faq-item {
+    margin: 0;
+}
+
+.modal-content .help-faq-q {
+    margin: 0 0 var(--space-xs);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.help-faq-a {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
 .hidden {
     display: none !important;
 }
@@ -863,6 +887,19 @@ textarea {
 .nav-link.nav-active {
     color: var(--accent);
     background: var(--accent-muted);
+}
+
+/* Button styled like sibling <a class="nav-link"> — use .nav-link for color/hover; reset UA button only */
+.nav-link.nav-link-btn {
+    font: inherit;
+    line-height: inherit;
+    margin: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 .nav-disabled {

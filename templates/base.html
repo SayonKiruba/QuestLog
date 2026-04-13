@@ -36,6 +36,7 @@
                 <span class="nav-link nav-disabled" title="Sign in to access profiles">Profiles</span>
                 <span class="nav-link nav-disabled" title="Sign in to access your library">Library</span>
                 {% endif %}
+                <button type="button" class="nav-link nav-link-btn" id="help-open" aria-expanded="false" aria-controls="help-modal">Help</button>
             </nav>
             <div class="site-nav-auth">
                 {% if logged_in %}
@@ -62,6 +63,34 @@
         </div>
     </footer>
 
+    <div id="help-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="help-modal-title">
+        <div class="modal-content modal-wide">
+            <h2 id="help-modal-title">Quick help</h2>
+            <div class="help-faq">
+                <div class="help-faq-item">
+                    <h3 class="help-faq-q">Do I need an account?</h3>
+                    <p class="help-faq-a">You can browse Discover and search for games without signing in. Create a free account to save games to your library, edit your profile, and use Profiles.</p>
+                </div>
+                <div class="help-faq-item">
+                    <h3 class="help-faq-q">How do I add a game?</h3>
+                    <p class="help-faq-a">Search from Discover, pick a title, then add it to your shelf with a status, optional rating, and notes when you are logged in.</p>
+                </div>
+                <div class="help-faq-item">
+                    <h3 class="help-faq-q">Where does game information come from?</h3>
+                    <p class="help-faq-a">Cover art and details are provided by <a href="https://www.igdb.com/" target="_blank" rel="noopener noreferrer">IGDB</a>.</p>
+                </div>
+                <div class="help-faq-item">
+                    <h3 class="help-faq-q">Where is my library and profile?</h3>
+                    <p class="help-faq-a">Use <strong>Library</strong> for your personal shelf and <strong>Profiles</strong> for community profiles (sign in required).</p>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-primary btn-block" id="help-close">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script defer src="{{ url_for('static', filename='help.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>
