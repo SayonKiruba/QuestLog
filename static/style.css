@@ -282,6 +282,27 @@ textarea {
     margin-bottom: var(--space-lg);
 }
 
+.page-head-library {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+}
+
+.page-head-library-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--space-xs);
+}
+
+.page-head-library-feedback {
+    font-size: 0.85rem;
+    max-width: 16rem;
+    text-align: right;
+}
+
 .page-head h1 {
     margin: 0 0 var(--space-xs);
     font-size: 1.5rem;
